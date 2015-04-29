@@ -1,0 +1,29 @@
+^tmp_head^
+<div class="jumbotron">
+  <h1><a href="/">^site_name^</a></h1>
+  <h4>^header_tagline^</h4>
+</div>
+<div class="index container">
+  <div class="row">
+    <div id="topic-header" class="col-sm-10 col-sm-offset-1">
+      Showing all posts with tag: <span class="topic_name">^topic_name^</span>
+    </div>
+
+    <div id="articles" class="col-sm-10 col-sm-offset-1">
+      ^articles^
+
+      <div class="pagination">
+        <a href="^site_root^/topic/^topic_name^/?page=^previous_page^" class="previous" style="display: ^previous_display^;"><i class="fa fa-arrow-left"></i> Newer Posts</a>
+        <a href="^site_root^/topic/^topic_name^/?page=^next_page^" class="next" style="display: ^next_display^;">Older Posts <i class="fa fa-arrow-right"></i></a>
+      </div>
+    </div>
+    <div class="spacer"></div>
+
+  </div>
+</div>
+
+<!-- Uncomment once Disqus comments plugin is configured
+^tmp_disqus_comments^
+-->
+
+^tmp_footer^

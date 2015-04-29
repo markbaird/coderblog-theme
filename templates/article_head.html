@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        ^tmp_includes^
+
+        <meta name="keywords" content="^meta_keywords^" />
+        <meta name="description" content="^meta_desc^" />
+        <meta property="og:locale" content="en-us"/>
+        <meta property="og:title" content="^meta_title^"/>
+        <meta property="og:description" content="^meta_desc^"/>
+        <meta property="og:url" content="^site_root^^current_url^"/>
+        <meta property="og:image" content="^meta_thumbnail^">
+        <meta property="og:site_name" content="^site_name^"/>
+        <meta property="og:type" content="^meta_type^"/>
+
+        <meta content='^author_name^' name='author'/>
+
+
+    </head>
+    <body>
+        <div id="wrap">
+
+            <script type='application/ld+json'>
+                {
+                   "@context": "http://schema.org",
+                   "@type": "^meta_type^",
+                   "name": "^article_headline_nolink^",
+                   "description": "^meta_desc^",
+                   "url": "^site_root^",
+                   "datePublished": "^article_published^",
+                   "dateModified" : "^article_modified^",
+                   "thumbnailUrl": "^meta_thumbnail^",
+                   "keywords": "^meta_keywords^",
+                   "author": {
+                        "@type": "Person",
+                        "name": "^author_name^",
+                        "sameAs" : [ "^author_linkedin_url^,
+                                      "^author_stackoverflow_url^",
+                                      "^author_github_url^"]
+                    },
+                    "creator": {
+                        "@type": "Person",
+                        "name": "^author_name^"
+                    },
+                    "copyrightHolder": {
+                        "@type": "Person",
+                        "name": "^author_name^"
+                    },
+                    "copyrightYear": ^year^
+                }
+            </script>

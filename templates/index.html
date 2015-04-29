@@ -1,0 +1,25 @@
+^tmp_head^
+<div class="jumbotron">
+  <h1><a href="/">^site_name^</a></h1>
+  <h4>^header_tagline^</h4>
+</div>
+<div class="index container">
+  <div class="row">
+    <div id="articles" class="col-sm-10 col-sm-offset-1">
+      ^articles^
+
+      <div class="pagination">
+        <a href="^site_root^?page=^previous_page^" class="previous" style="display: ^previous_display^;"><i class="fa fa-arrow-left"></i> Newer Posts</a>
+        <a href="^site_root^?page=^next_page^" class="next" style="display: ^next_display^;">Older Posts <i class="fa fa-arrow-right"></i></a>
+      </div>
+    </div>
+    <div class="spacer"></div>
+
+  </div>
+</div>
+
+<!-- Uncomment to render Disqus comment counts, once Disqus plugin is configured
+^tmp_disqus_comment_counts^
+-->
+
+^tmp_footer^
