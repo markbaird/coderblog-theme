@@ -46,13 +46,6 @@ module.exports = function BlogArticleServiceModule(pb) {
 
 
     BlogArticleService.prototype.find = function(where, options, cb) {
-        // Check the "forIndex" flag to see if this is a query for an index page,
-        // to force the "read more" links even if only one article is found.
-        var forIndex = false;
-        if (options.for_index && options.for_index === true) {
-            forIndex = true;
-        }
-
         if (util.isFunction(options)) {
             cb      = options;
             options = {};
@@ -65,6 +58,10 @@ module.exports = function BlogArticleServiceModule(pb) {
         if (!util.isObject(where)) {
             return cb(new Error('The where clause must be an object'));
         }
+
+        // Check the the existence of an ID field in the query, to see if this is a query for an index page,
+        // to determine how to handle "read more" links.
+        var forIndex = where[pb.DAO.getIdField()] ? false : true;
 
         //build out query
         if(!where.publish_date) {
@@ -122,7 +119,7 @@ module.exports = function BlogArticleServiceModule(pb) {
 
                     var tasks = util.getTasks(articles, function(articles, i) {
                         return function(callback) {
-                            self.processArticleForDisplay(articles[i], articles.length, forIndex, authors, contentSettings, function(){
+                            self.processArticleForDisplay(articles[i], forIndex, authors, contentSettings, function(){
                                 callback(null, null);
                             });
                         };
@@ -136,7 +133,7 @@ module.exports = function BlogArticleServiceModule(pb) {
 
     };
 
-    BlogArticleService.prototype.processArticleForDisplay = function(article, articleCount, forIndex, authors, contentSettings, cb) {
+    BlogArticleService.prototype.processArticleForDisplay = function(article, forIndex, authors, contentSettings, cb) {
         var self = this;
 
         if (this.getContentType() === 'article') {
@@ -165,14 +162,14 @@ module.exports = function BlogArticleServiceModule(pb) {
             }
 
             if(article.article_layout.indexOf('^read_more^') > -1) {
-                if(articleCount > 1 || forIndex) {
+                if(forIndex) {
                     article.article_layout = article.article_layout.substr(0, article.article_layout.indexOf('^read_more^')) + ' <div class="read-more"><a href="' + pb.config.siteRoot + '/article/' + article.url + '">' + contentSettings.read_more_text + '...</a></div>';
                 }
                 else {
                     article.article_layout = article.article_layout.split('^read_more^').join('');
                 }
             }
-            else if((articleCount > 1 || forIndex) && contentSettings.auto_break_articles) {
+            else if(forIndex && contentSettings.auto_break_articles) {
                 var breakString = '<br>';
                 var tempLayout;
 

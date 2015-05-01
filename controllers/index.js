@@ -294,7 +294,7 @@ module.exports = function IndexModule(pb) {
     }
     else if(topic) {
       var opts = { limit: perPage,
-        for_index: true, order: {'publish_date': pb.DAO.DESC}
+        order: {'publish_date': pb.DAO.DESC}
       };
       if (pageNumber) {
         opts.offset = pageNumber * perPage;
@@ -310,7 +310,7 @@ module.exports = function IndexModule(pb) {
       service.findById(page, articleCallback);
     }
     else{
-      var opts = { limit: perPage, for_index: true, order: {'publish_date': pb.DAO.DESC} };
+      var opts = { limit: perPage, order: {'publish_date': pb.DAO.DESC} };
       if (pageNumber) {
         opts.offset = pageNumber * perPage;
       }
