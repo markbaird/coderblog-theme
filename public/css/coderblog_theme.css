@@ -37,8 +37,18 @@ ul {
 
 h1 {
     font-family: 'Open Sans', sans-serif;
-    font-weight: 600;
+    font-weight: 800;
+    font-size: 32px;
     color: #585a5b;
+    text-transform: uppercase;
+}
+
+h2, h2 a {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600 !important;
+    font-size: 26px;
+    color: #585a5b;
+    text-transform: uppercase;
 }
 
 h3 {
@@ -62,14 +72,19 @@ a:hover, a:active, a:focus {
     outline:none;
 }
 
-.timestamp, .comments {
+.timestamp, .comments, .tag-label {
     font-family: 'Open Sans', sans-serif;
     text-transform: uppercase;
     font-weight: 700;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #e8e7e6;
+    border-bottom: 1px solid #e8e8e8;
     color: #585a5b;
+}
+
+.tag-label {
+    margin-right: 6px;
+    border: none;
 }
 
 .index .timestamp, .index .comments {
@@ -86,7 +101,11 @@ code {
     font-weight: 700;
 }
 
-pre {padding: 0;}
+pre {
+    padding: 0;
+    border: none;
+    border-radius: 4px !important;
+}
 
 pre code {
     max-height: 500px;
@@ -94,18 +113,18 @@ pre code {
     white-space: pre;
     word-wrap: normal;
     font-size: 1.2em;
+    border-radius: 4px !important;
 }
 
 .jumbotron {
-    background-color: #2F7990;
-    /*background: #2F7990 url('/public/coderblog-theme/img/header-background.jpg') no-repeat;
+    background: #176781; /*url('/public/coderblog-theme/img/header-background.jpg') no-repeat;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
-    background-size: cover;
-    */
-    color: #e8e7e6;
-    padding-left: 15%
+    background-size: cover;*/
+    color: #fff;
+    /*padding-left: 15%;*/
+    text-align: center;
 }
 
 .jumbotron a,
@@ -113,7 +132,7 @@ pre code {
 .jumbotron a:visited,
 .jumbotron a:focus,
 .jumbotron a:active {
-    color: #e8e7e6;
+    color: #e8e8e8;
     text-decoration: none;
     font-weight: 900;
     font-family: "Lato", sans-serif;
@@ -137,6 +156,11 @@ h1 a {
     font-weight: inherit;
 }
 
+.article p {
+    margin-bottom: 20px;
+    clear: both;
+}
+
 .article h4 {
     color: #585a5b;
 }
@@ -148,7 +172,7 @@ h1 a {
 }
 
 footer {
-    color: #e8e7e6;
+    color: #e8e8e8;
     background-color: #585a5b;
     padding: 30px 0;
     text-align: center;
@@ -162,7 +186,7 @@ footer {
 }
 
 footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
-    color: #e8e7e6;
+    color: #e8e8e8;
     font-weight: 700;
 }
 
@@ -174,8 +198,8 @@ footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
     float: right;
     border: none;
     padding: 5px 30px;
-    border-radius: 100px !important;
-    background-color: #e8e7e6;
+    border-radius: 50px !important;
+    background-color: #e8e8e8;
     color: #585a5b;
     text-decoration: none;
     font-family: "Open Sans", sans-serif;
@@ -183,7 +207,7 @@ footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
 }
 
 .index div.read-more a:hover {
-    background-color: #d7d5d3;
+    background-color: #d8d8d8;
     text-decoration: none;
 }
 
@@ -207,7 +231,7 @@ footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
 
 .index .article {
     margin-bottom: 20px;
-    border-bottom: 1px solid #e8e7e6;
+    border-bottom: 1px solid #e8e8e8;
     padding-bottom: 20px;
     width: 100%
 }
@@ -230,7 +254,7 @@ footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
 
 
 div.author {
-    background-color: #e8e7e6;
+    background-color: #e8e8e8;
     padding: 20px;
     color: #585a5b;
     min-height: 140px;
@@ -294,25 +318,28 @@ a.github {
     font-weight: 700;
     margin-bottom: 20px;
     color: #585a5b;
-    border-top: 1px solid #e8e7e6;
+    border-top: 1px solid #e8e8e8;
     padding-top: 10px;
 }
 
 .article_topics .topic {
     display: inline-block;
-    background-color: #2F7990;
-    color: #fff;
+    background-color: transparent;
+    color: #2F7990;
     margin-right: 10px;
     margin-top: 10px;
     padding: 4px 12px;
     text-transform: none;
-    border-radius: 100px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border-radius: 2px !important;
+    box-shadow: none;
+    transition: none;
+    border: 1px solid #2F7990;
 }
 
 .article_topics .topic:hover {
-    background-color: #0B4F66;
+    background-color: #2F7990;
     box-shadow: none;
+    color: #fff;
 }
 
 div.pagination {
@@ -326,8 +353,8 @@ div.pagination {
 .pagination a {
     border: none;
     padding: 7px 37px;
-    border-radius: 100px !important;
-    background-color: #e8e7e6;
+    border-radius: 50px !important;
+    background-color: #e8e8e8;
     color: #585a5b;
     text-decoration: none;
     font-family: "Open Sans", sans-serif;
@@ -337,7 +364,7 @@ div.pagination {
 }
 
 .pagination a:hover {
-    background-color: #d7d5d3;
+    background-color: #d8d8d8;
     text-decoration: none;
 }
 
@@ -349,7 +376,7 @@ div.pagination {
 #topic-header {
     font-size: 1.5em;
     font-weight: 600;
-    background-color: #e8e7e6;
+    background-color: #e8e8e8;
     padding: 20px;
 }
 
@@ -363,4 +390,42 @@ div.addthis_sharing_toolbox {
 
 a.at-share-btn:hover {
     opacity: 0.8;
+}
+
+.share-buttons {
+    text-align: center;
+    clear: both;
+}
+
+.share-title {
+    font-family: 'Open Sans', sans-serif;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #585a5b;
+}
+
+blockquote {
+    position: relative;
+    padding-left: 38px;
+    box-shadow: 2px 2px 15px #ccc;
+    display: inline-block;
+    border-left: 5px solid #176781;
+    clear: both;
+    float: left;
+}
+
+blockquote:before {
+    font-family: FontAwesome;
+    content:"\f10d";
+    color: #585a5b;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+blockquote:after {
+    font-family: FontAwesome;
+    content:"\f10e";
+    color: #585a5b;
+    padding-left: 12px;
 }
