@@ -258,7 +258,7 @@ module.exports = function ArticleModule(pb) {
     Article.getRoutes = function(cb) {
         var routes = [{
             method: 'get',
-            path: "/article/:customUrl",
+            path: "/article-old/:customUrl",
             auth_required: false,
             content_type: 'text/html'
         }];
