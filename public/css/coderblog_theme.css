@@ -194,7 +194,7 @@ footer a, footer a:hover, footer a:focus, footer a:active, footer a:visited {
     margin-bottom: 10px;
 }
 
-.index .read-more a {
+.index .read_more a {
     float: right;
     border: none;
     padding: 5px 30px;
