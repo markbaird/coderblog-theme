@@ -94,7 +94,7 @@ module.exports = function ArticleModule(pb) {
                     self.ts.registerLocal('meta_desc', metaDescription);
                     self.ts.registerLocal('meta_title', metaTitle);
                     self.ts.registerLocal('meta_thumbnail', metaThumbnail);
-                    self.ts.registerLocal('meta_lang', localizationLanguage);
+                    self.ts.registerLocal('meta_lang', 'en-us');
                     self.ts.registerLocal('meta_type', 'article');
                     self.ts.registerLocal('current_url', self.req.url);
                     self.ts.registerLocal('article_headline_nolink', data.content[0].headline);

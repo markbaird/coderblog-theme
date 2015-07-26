@@ -96,7 +96,7 @@ module.exports = function IndexModule(pb) {
           self.ts.registerLocal('meta_desc', data.section.description || metaDescription);
           self.ts.registerLocal('meta_title', data.section.name || metaTitle);
           self.ts.registerLocal('meta_thumbnail', metaThumbnail);
-          self.ts.registerLocal('meta_lang', localizationLanguage);
+          self.ts.registerLocal('meta_lang', 'en-us');
           self.ts.registerLocal('meta_type', article ? 'article' : 'blog');
           self.ts.registerLocal('author_name', data.content[0].author_name ? data.content[0].author_name : '');
           self.ts.registerLocal('current_url', self.req.url);
