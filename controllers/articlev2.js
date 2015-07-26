@@ -47,9 +47,10 @@ module.exports = function(pb) {
       //create the loader context
       var context     = self.getServiceContext();
       context.service = self.service;
-      //self.contentViewLoader = new pb.ContentViewLoader(context);
-      var ViewLoaderService = pb.PluginService.getService('custom_content_view_loader', 'coderblog-theme')
-      self.contentViewLoader = new ViewLoaderService(context);
+      self.contentViewLoader = new pb.ContentViewLoader(context);
+      self.contentViewLoader.getDefaultTemplatePath = function() {
+        return 'article';
+      };
 
       cb(null, true);
     };
