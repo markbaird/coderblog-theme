@@ -112,18 +112,21 @@ module.exports = function(pb) {
     });
   };
 
-  Index.prototype.getDefaultTemplatePath = function() {
-    return 'index';
-  };
-
   Index.prototype.getContent = function(pageNumber, articlesPerPage, cb) {
     var self = this;
+
+    var section = this.req.pencilblue_section || null;
+    var topic   = this.req.pencilblue_topic   || null;
 
     var opts = {
       render: true,
       limit: self.contentSettings.articles_per_page || 5,
-      order: [{'publish_date': pb.DAO.DESC}, {'created': pb.DAO.DESC}]
+      order: [{'publish_date': pb.DAO.DESC}]
     };
+
+    if (topic) {
+      opts.where = { article_topics: topic };
+    }
 
     if (pageNumber) {
       opts.offset = pageNumber * articlesPerPage;
@@ -135,9 +138,16 @@ module.exports = function(pb) {
   Index.prototype.getCount = function(pageNumber, articlesPerPage, cb) {
     var self = this;
 
+    var section = this.req.pencilblue_section || null;
+    var topic   = this.req.pencilblue_topic   || null;
+
     var opts = {
       where: {}
     };
+
+    if (topic) {
+      opts.where = { article_topics: topic };
+    }
 
     pb.ContentObjectService.setPublishedClause(opts.where);
     self.service.count(opts, cb);

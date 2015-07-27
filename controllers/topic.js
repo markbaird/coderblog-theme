@@ -18,17 +18,49 @@
 module.exports = function TopicModule(pb) {
 
   //pb dependencies
-  //pb dependencies
   var util  = pb.util;
   var Index = require('./index.js')(pb);
-  var async = require('async');
-
 
   /**
    * Index page of the pencilblue theme
    */
   function Topic(){}
   util.inherits(Topic, Index);
+
+  Topic.prototype.init = function(context, cb) {
+    var self = this;
+    var init = function(err) {
+
+      //get content settings
+      var contentService = new pb.ContentService();
+      contentService.getSettings(function(err, contentSettings) {
+        if (util.isError(err)) {
+          return cb(err);
+        }
+
+        //create the service
+        self.contentSettings = contentSettings;
+        var asContext = self.getServiceContext();
+        asContext.contentSettings = contentSettings;
+        self.service = new pb.ArticleServiceV2(asContext);
+
+        //create the loader context
+        var cvlContext             = self.getServiceContext();
+        cvlContext.contentSettings = contentSettings;
+        cvlContext.service         = self.service;
+        self.contentViewLoader     = new pb.ContentViewLoader(cvlContext);
+        self.contentViewLoader.getDefaultTemplatePath = function() {
+          return 'topic';
+        };
+
+        //provide a dao
+        self.dao = new pb.DAO();
+
+        cb(null, true);
+      });
+    };
+    Topic.super_.prototype.init.apply(this, [context, init]);
+  };
 
   Topic.prototype.render = function(cb) {
     var self    = this;
@@ -62,12 +94,6 @@ module.exports = function TopicModule(pb) {
     this.setPageName(topic.name);
     Topic.super_.prototype.render.apply(this, [cb]);
   };
-
-  Topic.prototype.getTemplate = function(content, cb) {
-    cb(null, 'topic');
-    return;
-  };
-
 
   /**
    * Provides the routes that are to be handled by an instance of this prototype.
