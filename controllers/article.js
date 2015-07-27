@@ -15,256 +15,226 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-module.exports = function ArticleModule(pb) {
+module.exports = function(pb) {
 
-    //pb dependencies
-    var util  = pb.util;
-    var Index = require('./index.js')(pb);
-    var async = require('async');
+  //pb dependencies
+  var util = pb.util;
+  var async = require('async');
+  var ContentViewLoader = pb.ContentViewLoader;
 
-    var ArticleService = pb.ArticleService;
+  /**
+   * Loads a single article
+   * @class ArticleViewController
+   * @constructor
+   * @extends BaseController
+   */
+  function ArticleViewController(){}
+  util.inherits(ArticleViewController, pb.BaseController);
 
-    /**
-     * Loads a single article
-     */
-    function Article(){}
-    util.inherits(Article, Index);
+  /**
+   * @method init
+   * @param {Object} content
+   * @param {Function} cb
+   */
+  ArticleViewController.prototype.init = function(context, cb) {
+    var self = this;
+    var init = function(err) {
+      if (util.isError(err)) {
+        return cb(err);
+      }
 
-    Article.prototype.render = function(cb) {
-        var self    = this;
-        var custUrl = this.pathVars.customUrl;
+      //create the service
+      self.service = new pb.ArticleServiceV2(self.getServiceContext());
 
-        //check for object ID as the custom URL
-        var where  = null;
-        if(pb.validation.isIdStr(custUrl)) {
-            where = {_id: pb.DAO.getObjectID(custUrl)};
-            if (pb.log.isSilly()) {
-                pb.log.silly("ArticleController: The custom URL was not an object ID [%s].  Will now search url field. [%s]", custUrl, e.message);
-            }
-        }
-        else {
-            where = {url: custUrl};
-        }
+      //create the loader context
+      var context     = self.getServiceContext();
+      context.service = self.service;
 
-        // fall through to URL key
-        if (where === null) {
-            where = {url: custUrl};
-        }
+      self.contentViewLoader = new pb.ContentViewLoader(context);
+      self.contentViewLoader.getDefaultTemplatePath = function() {
+        return 'article';
+      };
 
-        //attempt to load object
-        var dao = new pb.DAO();
-        dao.loadByValues(where, 'article', function(err, article) {
-            if (util.isError(err) || article == null) {
-                if (where.url) {
-                    self.reqHandler.serve404();
-                    return;
-                }
-
-                dao.loadByValues({url: custUrl}, 'article', function(err, article) {
-                    if (util.isError(err) || article == null) {
-                        self.reqHandler.serve404();
-                        return;
-                    }
-
-                    self.renderArticle(article, cb);
-                });
-
-                return;
-            }
-
-            self.renderArticle(article, cb);
-        });
-    };
-
-    Article.prototype.renderArticle = function(article, cb) {
-        var self = this;
-        this.req.pencilblue_article = article._id.toString();
-        this.article = article;
-        this.setPageName(article.name);
-
-        var contentService = new pb.ContentService();
-        contentService.getSettings(function(err, contentSettings) {
-            self.gatherData(0, 1, function(err, data) {
-                ArticleService.getMetaInfo(data.content[0], function(metaKeywords, metaDescription, metaTitle, metaThumbnail) {
-                    if (metaKeywords && metaKeywords.indexOf(",") === 0) {
-                        metaKeywords = metaKeywords.substring(1);
-                    }
-
-                    self.ts.registerLocal('meta_keywords', metaKeywords);
-                    self.ts.registerLocal('meta_desc', metaDescription);
-                    self.ts.registerLocal('meta_title', metaTitle);
-                    self.ts.registerLocal('meta_thumbnail', metaThumbnail);
-                    self.ts.registerLocal('meta_lang', 'en-us');
-                    self.ts.registerLocal('meta_type', 'article');
-                    self.ts.registerLocal('current_url', self.req.url);
-                    self.ts.registerLocal('article_headline_nolink', data.content[0].headline);
-                    self.ts.registerLocal('author_name', data.content[0].author_name ? data.content[0].author_name : '');
-                    self.ts.registerLocal('author_position', data.content[0].author_position ? data.content[0].author_position : '');
-                    self.ts.registerLocal('article_published', data.content[0].publish_date ? data.content[0].publish_date.toISOString() : '');
-                    self.ts.registerLocal('article_modified', data.content[0].last_modified ? data.content[0].last_modified.toISOString() : '');
-
-                    //self.ts.registerLocal('navigation', new pb.TemplateValue(data.nav.navigation, false));
-                    self.ts.registerLocal('content', function(flag, cb) {
-                        var tasks = util.getTasks(data.content, function(content, i) {
-                            return function(callback) {
-                                self.renderContent(content[i], contentSettings, data.nav.themeSettings, i, callback);
-                            };
-                        });
-                        async.parallel(tasks, function(err, result) {
-                            cb(err, new pb.TemplateValue(result.join(''), false));
-                        });
-                    });
-                    self.ts.registerLocal('page_name', function(flag, cb) {
-                        var content = data.content.length > 0 ? data.content[0] : null;
-                        self.getContentSpecificPageName(content, cb);
-                    });
-
-                    self.getTemplate(data.content, function(err, template) {
-                        if (util.isError(err)) {
-                            throw err;
-                        }
-
-                        self.ts.load(template, function(err, result) {
-                            if (util.isError(err)) {
-                                throw err;
-                            }
-
-                            cb({content: result});
-                        });
-                    });
-                });
-            });
-        });
-    };
-
-    Article.prototype.renderContent = function(content, contentSettings, themeSettings, index, cb) {
+      self.contentViewLoader.renderContent = function(content, options, cb) {
         var self = this;
 
-        var isPage           = content.object_type === 'page';
-        var showByLine       = contentSettings.display_bylines && !isPage;
-        var showTimestamp    = contentSettings.display_timestamp && !isPage;
-        var ats              = new pb.TemplateService(this.ls);
-        var contentUrlPrefix = isPage ? '/page/' : '/article/';
+        //set recurring params
+        if (util.isNullOrUndefined(options.contentIndex)) {
+          options.contentIndex = 0;
+        }
+
+        var isPage           = this.service.getType() === 'page';
+        var showByLine       = this.contentSettings.display_bylines && !isPage;
+        var showTimestamp    = this.contentSettings.display_timestamp && !isPage;
+        var ats              = self.ts.getChildInstance();
         self.ts.reprocess = false;
-        ats.registerLocal('article_permalink', pb.UrlService.urlJoin(pb.config.siteRoot, contentUrlPrefix, content.url));
-        ats.registerLocal('article_headline', new pb.TemplateValue('<a href="' + pb.UrlService.urlJoin(contentUrlPrefix, content.url) + '">' + content.headline + '</a>', false));
+        ats.registerLocal('article_permalink', function(flag, cb) {
+          self.onContentPermalink(content, options, cb);
+        });
+        ats.registerLocal('article_headline', function(flag, cb) {
+          self.onContentHeadline(content, options, cb);
+        });
+
         ats.registerLocal('article_headline_nolink', content.headline);
-        ats.registerLocal('article_subheading', content.subheading ? content.subheading : '');
-        ats.registerLocal('article_subheading_display', content.subheading ? '' : 'display:none;');
-        ats.registerLocal('article_id', content[pb.DAO.getIdField()].toString());
-        ats.registerLocal('article_index', index);
+        ats.registerLocal('article_subheading', ContentViewLoader.valOrEmpty(content.subheading));
+        ats.registerLocal('article_subheading_display', ContentViewLoader.getDisplayAttr(content.subheading));
+        ats.registerLocal('article_id', content[pb.DAO.getIdField()] + '');
+        ats.registerLocal('article_index', options.contentIndex);
         ats.registerLocal('article_timestamp', showTimestamp && content.timestamp ? content.timestamp : '');
-        ats.registerLocal('article_timestamp_display', showTimestamp ? '' : 'display:none;');
+        ats.registerLocal('article_timestamp_display', ContentViewLoader.getDisplayAttr(showTimestamp));
         ats.registerLocal('article_layout', new pb.TemplateValue(content.layout, false));
         ats.registerLocal('article_url', content.url);
-        ats.registerLocal('display_byline', showByLine ? '' : 'display:none;');
-        ats.registerLocal('author_photo', content.author_photo ? content.author_photo : '');
-        ats.registerLocal('author_photo_display', content.author_photo ? '' : 'display:none;');
-        ats.registerLocal('author_name', content.author_name ? content.author_name : '');
-        ats.registerLocal('author_position', content.author_position ? content.author_position : '');
-        ats.registerLocal('media_body_style', content.media_body_style ? content.media_body_style : '');
+        ats.registerLocal('display_byline', ContentViewLoader.getDisplayAttr(showByLine));
+        ats.registerLocal('author_photo', ContentViewLoader.valOrEmpty(content.author_photo));
+        ats.registerLocal('author_photo_display', ContentViewLoader.getDisplayAttr(content.author_photo));
+        ats.registerLocal('author_name', ContentViewLoader.valOrEmpty(content.author_name));
+        ats.registerLocal('author_position', ContentViewLoader.valOrEmpty(content.author_position));
+        ats.registerLocal('media_body_style', ContentViewLoader.valOrEmpty(content.media_body_style));
+        ats.registerLocal('comments', function(flag, cb) {
+          if (isPage || !pb.ArticleService.allowComments(self.contentSettings, content)) {
+            return cb(null, '');
+          }
 
-        ats.registerLocal('topics', function(flag, cb) {
-            self.getTopics(content, function(topics) {
-                var tasks = util.getTasks(topics, function(topics, i) {
-                    return function(callback) {
-                        self.renderTopic(topics[i], contentSettings, themeSettings, i, callback);
-                    };
-                });
-                async.parallel(tasks, function(err, result) {
-                    cb(err, new pb.TemplateValue(result.join(''), false));
-                });
-            });
+          var ts = ats.getChildInstance();
+          self.renderComments(content, ts, function(err, comments) {
+            cb(err, new pb.TemplateValue(comments, false));
+          });
         });
-
-        ats.registerLocal('customs', function(flag, cb) {
-            self.getCustoms(content, function(customs) {
-                if (customs) {
-                    var tasks = util.getTasks(customs, function (topics, i) {
-                        return function (callback) {
-                            self.renderCustom(customs[i], contentSettings, themeSettings, i, callback);
-                        };
-                    });
-                    async.parallel(tasks, function (err, result) {
-                        cb(err, new pb.TemplateValue(result.join(''), false));
-                    });
-                }
-            });
-        });
-
         ats.load('elements/article_full', cb);
+
+        options.contentIndex++;
+      };
+
+      cb(null, true);
     };
 
-    Article.prototype.renderTopic = function(topic, contentSettings, themeSettings, index, cb) {
-        var ats = new pb.TemplateService(this.ls);
-        ats.registerLocal('topic_name', topic.name);
-        ats.registerLocal('topic_name_encoded', encodeURIComponent(topic.name));
-        ats.load('elements/topic', cb);
+    ArticleViewController.super_.prototype.init.apply(this, [context, init]);
+  };
+
+  /**
+   * @method render
+   * @param {Function} cb
+   */
+  ArticleViewController.prototype.render = function(cb) {
+    var self    = this;
+    var custUrl = this.pathVars.customUrl;
+
+    //attempt to load object
+    var opts = {
+      render: true,
+      where: this.getWhereClause(custUrl)
     };
+    this.service.getSingle(opts, function(err, article) {
+      if (util.isError(err)) {
+        return cb(err);
+      }
+      else if (article == null) {
+        return self.reqHandler.serve404();
+      }
 
-    Article.prototype.getTopics = function(article, cb) {
-        var topics = article.article_topics;
+      self.ts.registerLocal('meta_lang', 'en-us');
+      self.ts.registerLocal('meta_type', 'article');
+      self.ts.registerLocal('article_headline_nolink', article.headline);
+      self.ts.registerLocal('author_name', article.author_name ? article.author_name : '');
+      self.ts.registerLocal('author_position', article.author_position ? article.author_position : '');
+      self.ts.registerLocal('article_published', article.publish_date ? article.publish_date.toISOString() : '');
+      self.ts.registerLocal('article_modified', article.last_modified ? article.last_modified.toISOString() : '');
 
-        var dao = new pb.DAO();
-        var opts = {
-            where: pb.DAO.getIdInWhere(topics),
-            order: {name: 1}
+      self.ts.registerLocal('topics', function(flag, cb) {
+        self.getTopics(article, function(topics) {
+          var tasks = util.getTasks(topics, function(topics, i) {
+            return function(callback) {
+              self.renderTopic(topics[i], i, callback);
+            };
+          });
+          async.parallel(tasks, function(err, result) {
+            cb(err, new pb.TemplateValue(result.join(''), false));
+          });
+        });
+      });
+
+      var options = {};
+      self.contentViewLoader.render([article], options, function(err, html) {
+        if (util.isError(err)) {
+          return cb(err);
+        }
+
+        var result = {
+          content: html
         };
-        dao.q('topic', opts, function(err, topicObjects) {
-            cb(topicObjects);
-        });
+        cb(result);
+      });
+    });
+  };
+
+  ArticleViewController.prototype.renderTopic = function(topic, index, cb) {
+    var ats = new pb.TemplateService(this.ls);
+    ats.registerLocal('topic_name', topic.name);
+    ats.registerLocal('topic_name_encoded', encodeURIComponent(topic.name));
+    ats.load('elements/topic', cb);
+  };
+
+  ArticleViewController.prototype.getTopics = function(article, cb) {
+    var topics = article.article_topics;
+
+    pb.log.info("TOPICS: ", article)
+
+    var dao = new pb.DAO();
+    var opts = {
+      where: pb.DAO.getIdInWhere(topics),
+      order: {name: 1}
     };
+    dao.q('topic', opts, function(err, topicObjects) {
+      cb(topicObjects);
+    });
+  };
 
-    Article.prototype.getCustoms = function(article, cb) {
-        var self = this;
-        this.getCustomTypeByName("TestObjects", function(customType) {
-            if (customType) {
-                var cos = new pb.CustomObjectService();
-                // TODO: sort order??
-                var opts = {
-                    where: {
-                        Post: self.req.pencilblue_article
-                    }
-                };
+  /**
+   * Builds out the where clause for finding the article to render.  Because
+   * MongoDB has an object ID represented by 12 characters we must account
+   * for this condition by building a where clause with an "or" condition.
+   * Otherwise we will only query on the url key
+   * @method getWhereClause
+   * @param {String} custUrl Represents the article's ID or its slug
+   * @return {Object} An object representing the where clause to use in the
+   * query to locate the article
+   */
+  ArticleViewController.prototype.getWhereClause = function(custUrl) {
 
-                cos.findByType(customType, opts, function(err, customObjects) {
-                    cb(customObjects);
-                });
-            }
-            else {
-                cb([]);
-            }
-        });
-    };
-
-    Article.prototype.getCustomTypeByName = function(name, cb) {
-        var cos = new pb.CustomObjectService();
-        cos.loadTypeByName(name, function(err, custObjType) {
-            cb(custObjType);
-        });
+    //put a check to look up by ID *FIRST*
+    var conditions = [];
+    if(pb.validation.isIdStr(custUrl, true)) {
+      conditions.push(pb.DAO.getIdWhere(custUrl));
     }
 
-    Article.prototype.renderCustom = function(custom, contentSettings, themeSettings, index, cb) {
-        var ats = new pb.TemplateService(this.ls);
-        ats.registerLocal('custom_name', custom.name);
-        ats.load('elements/custom', cb);
-    };
+    //put a check to look up by URL
+    conditions.push({
+      url: custUrl
+    });
 
-    Article.prototype.getTemplate = function(content, cb) {
-        cb(null, 'article');
-        return;
-    };
+    //check for object ID as the custom URL
+    var where;
+    if (conditions.length > 1) {
+      where = {
+        $or: conditions
+      };
+    }
+    else {
+      where = conditions[0];
+    }
+    return where;
+  };
 
-    Article.getRoutes = function(cb) {
-        var routes = [{
-            method: 'get',
-            path: "/article-old/:customUrl",
-            auth_required: false,
-            content_type: 'text/html'
-        }];
-        cb(null, routes);
-    };
+  ArticleViewController.getRoutes = function(cb) {
+    var routes = [{
+      method: 'get',
+      path: "/article/:customUrl",
+      auth_required: false,
+      content_type: 'text/html'
+    }];
+    cb(null, routes);
+  };
 
-    //exports
-    return Article;
+  //exports
+  return ArticleViewController;
 };
