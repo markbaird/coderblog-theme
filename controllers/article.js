@@ -176,9 +176,6 @@ module.exports = function(pb) {
 
   ArticleViewController.prototype.getTopics = function(article, cb) {
     var topics = article.article_topics;
-
-    pb.log.info("TOPICS: ", article)
-
     var dao = new pb.DAO();
     var opts = {
       where: pb.DAO.getIdInWhere(topics),
@@ -230,6 +227,12 @@ module.exports = function(pb) {
       method: 'get',
       path: "/article/:customUrl",
       auth_required: false,
+      content_type: 'text/html'
+    }, {
+      method: 'get',
+      path: "/article-preview/:customUrl",
+      access_level: pb.SecurityService.ACCESS_WRITER,
+      auth_required: true,
       content_type: 'text/html'
     }];
     cb(null, routes);

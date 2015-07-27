@@ -20,43 +20,29 @@ module.exports = function PreviewModule(pb) {
     //pb dependencies
     var util  = pb.util;
     var Index = require('./index.js')(pb);
-    var Article = require('./article.js')(pb);
 
     /**
      * Preview an article or page
      */
     function Preview(){}
     util.inherits(Preview, Index);
-    //util.inherits(Preview, Article);
-
 
     Preview.prototype.render = function(cb) {
         var self    = this;
         var vars    = this.pathVars;
 
-        var dao     = new pb.DAO();
-        dao.loadById(vars.id, vars.type, function(err, item) {
-            if (util.isError(err) || item === null) {
-                cb({content: 'The section could not be found on this server', code: 404});
+        // Just redirect to the preview URLs for the specific content type
+        switch(vars.type) {
+            case 'page':
+                self.redirect('/page-preview/' + vars.id, cb);
                 return;
-            }
+            case 'article':
+            default:
+                self.redirect('/article-preview/' + vars.id, cb);
+                return;
+        }
 
-            self.req.pencilblue_preview = item[pb.DAO.getIdField()].toString();
-            switch(vars.type) {
-                case 'page':
-                    self.req.pencilblue_page = item[pb.DAO.getIdField()].toString();
-                    this.page = item;
-                    break;
-                case 'article':
-                default:
-                    self.req.pencilblue_article = item[pb.DAO.getIdField()].toString();
-                    this.article = item;
-                    break;
-            }
-            //Preview.super_.prototype.render.apply(self, [cb]);
-            var controller = new Article();
-            controller.renderArticle(this.article, cb);
-        });
+        return self.reqHandler.serve404();
     };
 
     Preview.prototype.getPageTitle = function() {

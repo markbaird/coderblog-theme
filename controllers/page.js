@@ -185,6 +185,12 @@ module.exports = function(pb) {
             path: "/page/:customUrl",
             auth_required: false,
             content_type: 'text/html'
+        }, {
+            method: 'get',
+            path: "/page-preview/:customUrl",
+            access_level: pb.SecurityService.ACCESS_WRITER,
+            auth_required: true,
+            content_type: 'text/html'
         }];
         cb(null, routes);
     };
